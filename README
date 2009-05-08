@@ -1,0 +1,38 @@
+index
+=========
+
+Sel: 260430732:
+     260451915
+
+Appears to be meta-data/index.
+
+loadmetascript refers to a file later in the index so it is probably not part of the index.
+
+Actual index probably starts 52 bytes into index.sar (actually 51, first byte is length of first string path)
+
+Byte (2 bytes? first one always zero, but that would be big endian) just before string is length of string, woo. None > 127 so can't determine if it is signed or unsigned, presume unsigned.
+
+Format Spec
+===========
+1 byte - string_length
+string_length+1 bytes - null terminated string
+4 bytes - offset (definitely offset)
+2 sets of identical (check this) 4 bytes - file size
+
+Header
+=========
+16 bytes
+
+Probably looking for an offset for the index data, 260430783
+
+Maybe the table size? That is 21132 or 0x528c
+
+Maybe the number of table entries? 299 entries 0x12b
+
+Header Format
+=============
+6 bytes - SARCFV
+2 bytes - 0x01 0x01 (maybe a version number?)
+4 bytes - number of table entries
+4 bytes - offset of above index
+
