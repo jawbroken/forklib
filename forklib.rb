@@ -1,27 +1,27 @@
 class Forklib
   def self.extract(datafile, outputfolder)
     contents = IO.read(datafile)
-    
+
     # extract the 16 byte header
     header = contents[0,16]
-    
+
     # verify magic header
     magic = header[0,6]
     return :FAIL if magic != "SARCFV"
-    
+
     # check for correct version number
     version = header[6,2]
     return :FAIL if version != "\001\001"
-    
+
     # number of entries in index
     num_entries = header[8,4].unpack('I')[0]
-    
+
     # offset of index
     index_offset = header[12,4].unpack('I')[0]
-    
+
     # extract index from end of file
     index = contents[index_offset, contents.length-index_offset]
-    
+
     # pull out structured index table
     index_table = []; i = 0
     num_entries.times do
@@ -30,13 +30,13 @@ class Forklib
       offset = index[i, 4].unpack('I')[0]; i += 4
       size1 = index[i, 4].unpack('I')[0]; i += 4
       size2 = index[i, 4].unpack('I')[0]; i += 4
-      
+
       # not sure why size is duplicated but they are always identical
       return :FAIL if size1 != size2
-      
+
       index_table << [name, offset, size1]
     end
-    
+
     Dir.mkdir(outputfolder) unless File::directory?(outputfolder)
     i = 0; # keep index with file so it can be repacked in the same order
            # probably not necessary but what the hell
@@ -50,15 +50,15 @@ class Forklib
     end
     return :WOO
   end
-  
+
   def self.compact(inputfolder, outputfile)
     # find all files with index number
     files = Dir[File.join(inputfolder, "*")]
     files = files.select{|x| File.split(x)[1] =~ /^\d{3} /}
     files.map!{|x| [x, File.split(x)[1]]}.sort!
-    
+
     num_entries = files.length
-    
+
     # unsanitise file names and collect file contents
     file_sections = []
     # keep track of offset, start after header
@@ -67,7 +67,7 @@ class Forklib
       m = file.match(/^\d{3} (.*)/)
       sanitised_name = m[1]
       name = sanitised_name.gsub('$', ':').gsub('>', '\\')
-      
+
       # extract information about file and add it to file_section
       temp = IO.read(path)
       file_length = temp.length
@@ -77,7 +77,7 @@ class Forklib
       data
     end
     index_offset = offset_accum
-    
+
     # write everything out in SAR format
     File.open(outputfile, 'wb') do |file|
       file.write("SARCFV")
